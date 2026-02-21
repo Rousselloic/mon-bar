@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Prendre une Commande</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #eceff1; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 20px; }
+        .card-boisson { background: white; border: 1px solid #ddd; padding: 10px; text-align: center; border-radius: 10px; cursor: pointer; transition: 0.2s; }
+        .card-boisson:hover { transform: scale(1.05); border-color: #2196F3; }
+        .card-boisson img { width: 100%; height: 100px; object-fit: cover; border-radius: 5px; }
+        select { width: 100%; padding: 10px; font-size: 1.1rem; margin-bottom: 20px; }
+        .badge { background: #2196F3; color: white; padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html">Tables</a> | <a href="boissons.html">Menu</a> | <b>Prise de Commande</b> | <a href="barman.html">Côté Barman</a>
+    </nav>
+
+    <h1>Nouvelle Commande</h1>
+    
+    <label>Sélectionner la Table :</label>
+    <select id="selectTables"><option>Chargement...</option></select>
+
+    <div class="grid" id="menuBoissons"></div>
+
+    <script>
+        const SUPABASE_URL = "TA_URL_SUPABASE";
+        const SUPABASE_KEY = "TA_CLE_ANON";
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // 1. Charger les tables dans le menu déroulant
+        async function init() {
+            const { data: tables } = await supabase.from('tables_bar').select('*');
+            const select = document.getElementById('selectTables');
+            select.innerHTML = tables.map(t => `<option value="${t.id}">${t.nom}</option>`).join('');
+
+            // 2. Charger les boissons pour cliquer dessus
+            const { data: boissons } = await supabase.from('boissons').select('*');
+            const grid = document.getElementById('menuBoissons');
+            grid.innerHTML = boissons.map(b => `
+                <div class="card-boisson" onclick="passerCommande('${b.id}', '${b.nom}')">
+                    <img src="${b.image_url || 'https://via.placeholder.com/150'}">
+                    <h4>${b.nom}</h4>
+                    <span class="badge">${b.prix} FCFA</span>
+                </div>
+            `).join('');
+        }
+
+        // 3. Enregistrer la commande
+        async function passerCommande(boissonId, nomBoisson) {
+            const tableId = document.getElementById('selectTables').value;
+            
+            const { error } = await supabase.from('commandes').insert([
+                { table_id: tableId, boisson_id: boissonId, quantite: 1, archive: false }
+            ]);
+
+            if (!error) {
+                alert("Ajouté : " + nomBoisson);
+            } else {
+                alert("Erreur : " + error.message);
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<h1>Gestion des Boissons</h1>
+<div style="background: white; padding: 20px; border-radius: 8px;">
+    <input type="text" id="bName" placeholder="Nom de la boisson">
+    <input type="number" id="bPrice" placeholder="Prix (ex: 500)">
+    <input type="text" id="bImg" placeholder="Lien de l'image (URL)">
+    <button onclick="addBoisson()" class="btn-add">Ajouter au menu</button>
+</div>
+
+<div id="boissonsList"></div>
+
+<script>
+    // (Ajoute ici le même bloc de connexion Supabase que la page 1)
+
+    async function loadBoissons() {
+        const { data } = await supabase.from('boissons').select('*');
+        const list = document.getElementById('boissonsList');
+        list.innerHTML = data.map(b => `
+            <div class="table-card">
+                <img src="${b.image_url}" width="50">
+                <span>${b.nom} - <strong>${b.prix} FCFA</strong></span>
+                <button class="btn-del" onclick="deleteBoisson('${b.id}')">Retirer</button>
+            </div>
+        `).join('');
+    }
+
+    async function addBoisson() {
+        const nom = document.getElementById('bName').value;
+        const prix = document.getElementById('bPrice').value;
+        const image_url = document.getElementById('bImg').value;
+        await supabase.from('boissons').insert([{ nom, prix, image_url }]);
+        loadBoissons();
+    }
+    // ... fonction deleteBoisson identique à deleteTable
+</script>

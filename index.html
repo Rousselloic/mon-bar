@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion des Tables</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
+        .table-card { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; display: flex; justify-content: space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        button { cursor: pointer; padding: 8px; }
+        .btn-add { background: green; color: white; border: none; padding: 10px; }
+        .btn-del { background: red; color: white; border: none; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html">Tables</a> | <a href="boissons.html">Boissons</a> | 
+        <a href="commande.html">Prendre Commande</a> | <a href="barman.html">Barman</a>
+    </nav>
+    
+    <h1>Liste des Tables</h1>
+    <input type="text" id="tableName" placeholder="Nom de la table (ex: Table 5)">
+    <button class="btn-add" onclick="createTable()">+ Créer une Table</button>
+
+    <div id="tablesList"></div>
+
+    <script>
+        // REMPLACE PAR TES INFOS SUPABASE
+        const SUPABASE_URL = "TON_URL_ICI";
+        const SUPABASE_KEY = "TA_CLE_ANON_ICI";
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function loadTables() {
+            const { data, error } = await supabase.from('tables_bar').select('*');
+            const list = document.getElementById('tablesList');
+            list.innerHTML = "";
+            data.forEach(t => {
+                list.innerHTML += `
+                    <div class="table-card">
+                        <strong>${t.nom}</strong>
+                        <button class="btn-del" onclick="deleteTable('${t.id}')">Supprimer</button>
+                    </div>`;
+            });
+        }
+
+        async function createTable() {
+            const nom = document.getElementById('tableName').value;
+            await supabase.from('tables_bar').insert([{ nom }]);
+            location.reload();
+        }
+
+        async function deleteTable(id) {
+            if(confirm("Supprimer cette table ?")) {
+                await supabase.from('tables_bar').delete().eq('id', id);
+                loadTables();
+            }
+        }
+
+        loadTables();
+    </script>
+</body>
+</html>
+

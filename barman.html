@@ -1,0 +1,23 @@
+async function loadOrdersForBarman() {
+    // On récupère les commandes NON archivées
+    // On fait une "jointure" pour avoir le nom de la table et de la boisson
+    const { data } = await supabase
+        .from('commandes')
+        .select(`
+            id,
+            quantite,
+            tables_bar(nom),
+            boissons(nom)
+        `)
+        .eq('archive', false);
+
+    // Affichage avec un bouton "Archiver" qui fait :
+    // await supabase.from('commandes').update({ archive: true }).eq('id', id);
+}
+// Rafraîchir la liste automatiquement toutes les 10 secondes
+setInterval(loadOrders, 10000);
+
+async function archiver(commandeId) {
+    await supabase.from('commandes').update({ archive: true }).eq('id', commandeId);
+    loadOrders(); // Recharge la liste
+}
